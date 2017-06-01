@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<style>
+	body{
+		margin: 0;
+		padding: 0;
+	}
+</style>
+<body>
+<script type="text/javascript">
+//宽高自适应，返回width,height 
+var viewSize = (function(){
+
+    var pageWidth = window.innerWidth,
+        pageHeight = window.innerHeight;
+
+    if (typeof pageWidth != 'number') {
+        if (document.compatMode == 'CSS1Compat') {//document.compatMode 浏览器的渲染模式，只有BackCompat和CSS1Compat两种
+            pageHeight = document.documentElement.clientHeight;
+            pageWidth = document.documentElement.clientWidth;
+        } else {
+            pageHeight = document.body.clientHeight;
+            pageWidth = document.body.clientWidth;
+        }
+        /*
+         以上代码可以写：
+         pageHeight = document.documentElement.clientHeight||document.body.clientHeight;
+         * */
+    };
+    if(pageWidth >= pageHeight){
+        pageWidth = pageHeight * 360 / 640;
+    }
+    pageWidth = pageWidth >  414 ? 414 : pageWidth;
+    pageHeight = pageHeight > 736 ? 736 : pageHeight;
+
+    return {
+        width: pageWidth,
+        height: pageHeight
+    };
+
+})();
+
+//判断图片是否加载完成 arr:数组，fn:回掉函数
+function loadImg(arr,fn){
+	var result = {};
+ 	var iNow = 0;
+ 	for(var i =0;i<arr.length;i++){
+ 		var oImage = new Image();
+ 		var tmp = arr[i].split('.');
+ 		result[tmp[0]] = oImage;
+ 		oImage.onload = function(){
+			iNow++;
+			if(iNow>=arr.length){
+				fn(result);
+			}
+ 		}
+ 		oImage.src = 'images/'+arr[i];
+ 	}
+}
+
+// Create the canvas
+var canvas = document.createElement("canvas");
+var ctx = canvas.getContext("2d");
+canvas.width = viewSize.width;
+canvas.height = viewSize.height;
+document.body.appendChild(canvas);
+
+//定义鱼
+var fish = {
+	speed: 256, // 
+	x:0,
+	y:0
+};
+
+/*// 背景图片
+var bgImage = new Image();
+bgImage.src = "images/img.png";
+bgImage.onload = main;*/
+
+// Draw 
+var main = function () {
+	//图片加载完成后才执行方法
+	loadImg(['img.png','fash.png'],function(imgArr){
+		render(imgArr);
+	});
+};
+
+//随机产生x,y坐标
+var randomNumber = function () {
+	var  x = 32 + (Math.random() * (canvas.width - 64));
+	var  y = 32 + (Math.random() * (canvas.height - 64));
+	return {x:x, //返回一个对象
+		   y:y}
+		   
+};
+
+var render = function(imgArr){
+	var pos = randomNumber();
+	//drawImage的顺序要按照顺序，否则被盖住
+	ctx.drawImage(imgArr['img'], 0,0);
+	ctx.drawImage(imgArr['fash'],40,40,100,100);
+	ctx.drawImage(imgArr['fash'],pos.x,pos.y,60,60);
+}
+// The main game loop
+main();
+
+
+// 开始游戏
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="initial-scale=1, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0, width=device-width">
+    <title></title>
+</head>
+<style>
+	body{
+		margin: 0;
+		padding: 0;
+		background: #000000;v      
+	}
+</style>
+<body>
+<script type="text/javascript">
+//宽高自适应，返回width,height 
+var viewSize = (function(){
+
+    var pageWidth = window.innerWidth,
+        pageHeight = window.innerHeight;
+
+    if (typeof pageWidth != 'number') {
+        if (document.compatMode == 'CSS1Compat') {//document.compatMode 浏览器的渲染模式，只有BackCompat和CSS1Compat两种
+            pageHeight = document.documentElement.clientHeight;
+            pageWidth = document.documentElement.clientWidth;
+        } else {
+            pageHeight = document.body.clientHeight;
+            pageWidth = document.body.clientWidth;
+        }
+        /*
+         以上代码可以写：
+         pageHeight = document.documentElement.clientHeight||document.body.clientHeight;
+         * */
+    };
+    if(pageWidth >= pageHeight){
+        pageWidth = pageHeight * 360 / 640;
+    }
+    pageWidth = pageWidth >  414 ? 414 : pageWidth;
+    pageHeight = pageHeight > 736 ? 736 : pageHeight;
+
+    return {
+        width: pageWidth,
+        height: pageHeight
+    };
+
+})();
+
+//判断图片是否加载完成 arr:数组，fn:回掉函数
+function loadImg(arr,fn){
+	var result = {};
+ 	var iNow = 0;
+ 	for(var i =0;i<arr.length;i++){
+ 		var oImage = new Image();
+ 		var tmp = arr[i].split('.');
+ 		result[tmp[0]] = oImage;
+ 		oImage.onload = function(){
+			iNow++;
+			if(iNow>=arr.length){
+				fn(result);
+			}
+ 		}
+ 		oImage.src = 'images/'+arr[i];
+ 	}
+}
+
+
+function ImageMonitor(){
+	var imgArray = [];
+	return {
+		createImage : function(src){
+			return typeof imgArray[src] != 'undefined' ? imgArray[src] : (imgArray[src] = new Image(), imgArray[src].src = src, imgArray[src])
+		},
+		loadImage : function(arr, callback){
+			for(var i=0,l=arr.length; i<l; i++){
+				var img = arr[i];
+				imgArray[img] = new Image();
+				imgArray[img].onload = function(){
+					if(i==l-1 && typeof callback=='function'){
+						callback();
+					}
+				}
+				imgArray[img].src = img
+			}
+		}
+	}
+}
+
+//fish 类 有熟悉 和方法
+function fish(ctx){
+	
+	gameMonitor.img.loadImage(['images/player.png']);
+	this.width=80;
+	this.height=80;
+	this.left =gameMonitor.width/2 - this.width/2;
+	this.top = gameMonitor.height-2*this.height;
+	this.player = gameMonitor.img.createImage('images/player.png');
+	this.paint = function(){
+		ctx.drawImage(this.player,this.left,this.top,this.width,this.height);
+	}
+
+}
+
+var gameMonitor = {
+	//初始化数据
+	width:document.documentElement.clientWidth||document.body.clientWidth,
+	height:document.documentElement.clientHeight||document.body.clientHeight,
+	bgWidth:2000,
+	bgHeight:766,
+	img:new ImageMonitor(),
+	footList:[],//月饼数组
+	bgDistance:0,//背景位置
+	bgSpeed:2,
+	bgLoop:0,
+	time:0,
+	eventType:{
+		star:'touchstart',
+		move:'touchmove',
+		end:'touchend'
+	},
+	//方法
+	init:function(){
+		var that = this;
+		var canvas = document.createElement("canvas");
+		var ctx = canvas.getContext("2d");
+		canvas.width = that.width;
+		canvas.height = that.height;
+		document.body.appendChild(canvas);
+			//绘制背景
+		var bg = new Image();
+		that.bg = bg;
+		bg.onload = function(){
+          	ctx.drawImage(bg, 0, 0);    
+          	ctx.createPattern(bg,'repeat');
+		}
+		bg.src = 'images/index.png';
+		that.run(ctx);
+	},
+	
+	initLisenter:function(ctx){
+		var that = this;
+		var body = $(document.body);
+		
+		$(document).on(gameMonitor.eventType.move,function(event){
+			event.preventDefault(); //阻止默认行为
+		})
+	},
+	
+	//滚动背景
+	rollBg: function(ctx){
+		if(this.bgDistance>=this.bgWidth){
+			this.bgLoop = 0;
+		}
+		this.bgDistance = ++this.bgLoop * this.bgSpeed;
+		ctx.drawImage(this.bg,0,this.bgHeight,this.bgDistance-this.bgWidth,this.bgHeight);
+		ctx.drawImage(this.bg,this.bgDistance,0,this.bgWidth,this.bgHeight);
+
+	},
+	run : function(ctx){
+		var that = this;
+		that.rollBg(ctx);
+		that.timmer = setTimeout(function(){
+			gameMonitor.run(ctx);
+		}, Math.round(1000/60));
+
+		that.time++;
+	},
+	
+	
+}
+// 开始游戏
+gameMonitor.init();
+</script>
+</body>
+</html>
